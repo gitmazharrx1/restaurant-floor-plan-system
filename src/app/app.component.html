@@ -8,10 +8,17 @@
   <!-- Drop Zone -->
   <div class="drop-zone" appDropZone (itemDropped)="onItemDropped($event)">
     <div *ngFor="let item of layout; let i = index" class="dropped-item" [style.left.px]="item.x"
-      [style.top.px]="item.y" appDraggable [itemIndex]="i" (positionChanged)="updateItemPosition($event)">
+      [style.top.px]="item.y" [style.width.px]="item.width" [style.height.px]="item.height" appDraggable
+      (positionChanged)="updateItemPosition(i, $event)">
+
       {{ item.type === 'table' ? '🟤 Table' : '🪑 Chair' }}
+
+      <!-- Resize handle -->
+      <div class="resize-handle" (mousedown)="startResizing($event, i)"></div>
+
       <button class="delete-btn" (click)="deleteItem(i)">❌</button>
     </div>
+
   </div>
   <button (click)="saveLayout()">Save Layout</button>
   <button (click)="clearLayout()">Clear Layout</button>
