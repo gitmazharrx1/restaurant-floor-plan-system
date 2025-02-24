@@ -5,7 +5,7 @@ import { Directive, HostListener, EventEmitter, Output, ElementRef } from '@angu
   standalone: true
 })
 export class DropZoneDirective {
-  @Output() itemDropped = new EventEmitter<{ id: string, type: string, x: number, y: number, width: number, height: number }>();
+  @Output() itemDropped = new EventEmitter<{ id: string, type: string, label: string, x: number, y: number, width: number, height: number }>();
 
   constructor(private el: ElementRef) { }
 
@@ -33,6 +33,7 @@ export class DropZoneDirective {
     this.itemDropped.emit({
       id: itemData.id,
       type: itemData.type,
+      label: itemData.label,
       x,
       y,
       width,

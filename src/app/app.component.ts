@@ -18,13 +18,23 @@ export class AppComponent {
   startY = 0;
   startWidth = 0;
   startHeight = 0;
+  tableLabelCount: number = 1;
+  chairLabelCount: number = 1;
 
   ngOnInit() {
     this.loadLayout();
   }
 
   dragStart(event: DragEvent, type: string) {
-    event.dataTransfer?.setData('text/plain', JSON.stringify({ id: this.generateId(), type }));
+    let label = ''
+    if (type == 'table') {
+      label = `Table ${this.tableLabelCount}`
+      this.tableLabelCount++;
+    } else if (type == 'chair') {
+      label = `Chair ${this.chairLabelCount}`
+      this.chairLabelCount++;
+    }
+    event.dataTransfer?.setData('text/plain', JSON.stringify({ id: this.generateId(), type, label }));
   }
 
   onItemDropped(event: any) {
@@ -51,6 +61,8 @@ export class AppComponent {
     const savedLayout = localStorage.getItem('restaurantLayout');
     if (savedLayout) {
       this.layout = JSON.parse(savedLayout);
+      this.tableLabelCount = this.layout.filter(item => item.type === 'table').length + 1;
+      this.chairLabelCount = this.layout.filter(item => item.type === 'chair').length + 1;
     }
   }
 
