@@ -1,16 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
-import { DraggableDirective } from '../directive/Draggable.directive';  // ✅ Import correctly
+import { Component } from '@angular/core';
+import { DraggableDirective } from '../directive/Draggable.directive';
 import { DropZoneDirective } from '../directive/DropZone.directive';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, DraggableDirective, DropZoneDirective],  // ✅ Ensure directives are imported
+  imports: [CommonModule, DraggableDirective, DropZoneDirective],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
   layout: any[] = [];
 
   ngOnInit() {
@@ -23,23 +23,20 @@ export class AppComponent implements OnInit {
 
   onItemDropped(event: any) {
     this.layout.push(event);
-    this.saveLayout();
   }
 
-  updateItemPosition(updatedItem: any, index: number) {
-    this.layout[index].x = updatedItem.x;
-    this.layout[index].y = updatedItem.y;
-    this.saveLayout();
+  updateItemPosition(event: { index: number, x: number, y: number }) {
+    this.layout[event.index].x = event.x;
+    this.layout[event.index].y = event.y;
   }
-
 
   deleteItem(index: number) {
     this.layout.splice(index, 1);
-    this.saveLayout();
   }
 
   saveLayout() {
     localStorage.setItem('restaurantLayout', JSON.stringify(this.layout));
+    alert('Layout Saved!');
   }
 
   loadLayout() {
