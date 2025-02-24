@@ -35,17 +35,15 @@
   background: #eee;
   border: 1px solid #aaa;
   cursor: grab;
-  min-width: 30px;
-  min-height: 30px;
 }
 
 .resize-handle {
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 10px;
-  height: 10px;
-  /* background: rgb(173, 173, 173); */
+  width: 15px;
+  height: 15px;
+  background: gray;
   cursor: nwse-resize;
 }
 

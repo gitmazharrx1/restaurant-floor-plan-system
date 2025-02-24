@@ -1,13 +1,13 @@
-import { Directive, HostListener, EventEmitter, Output, ElementRef, Renderer2 } from '@angular/core';
+import { Directive, HostListener, EventEmitter, Output, ElementRef } from '@angular/core';
 
 @Directive({
   selector: '[appDropZone]',
   standalone: true
 })
 export class DropZoneDirective {
-  @Output() itemDropped = new EventEmitter<{ id: string, type: string, x: number, y: number }>();
+  @Output() itemDropped = new EventEmitter<{ id: string, type: string, x: number, y: number, width: number, height: number }>();
 
-  constructor(private el: ElementRef, private renderer: Renderer2) { }
+  constructor(private el: ElementRef) { }
 
   @HostListener('dragover', ['$event'])
   onDragOver(event: DragEvent) {
@@ -22,22 +22,21 @@ export class DropZoneDirective {
     if (!data) return;
 
     const dropZoneRect = this.el.nativeElement.getBoundingClientRect();
-    const x = event.clientX - dropZoneRect.left;
-    const y = event.clientY - dropZoneRect.top;
+    let x = (event.clientX - dropZoneRect.left) / dropZoneRect.width * 100;
+    let y = (event.clientY - dropZoneRect.top) / dropZoneRect.height * 100;
 
-    // Ensure position is within bounds
-    const maxX = dropZoneRect.width - 50; // Adjust for item width
-    const maxY = dropZoneRect.height - 50; // Adjust for item height
-
-    const clampedX = Math.max(0, Math.min(x, maxX));
-    const clampedY = Math.max(0, Math.min(y, maxY));
+    // Default size in %
+    const width = 10;
+    const height = 10;
 
     const itemData = JSON.parse(data);
     this.itemDropped.emit({
       id: itemData.id,
       type: itemData.type,
-      x: clampedX,
-      y: clampedY
+      x,
+      y,
+      width,
+      height
     });
   }
 }

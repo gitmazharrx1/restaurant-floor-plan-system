@@ -18,41 +18,11 @@ export class AppComponent {
   startY = 0;
   startWidth = 0;
   startHeight = 0;
+
   ngOnInit() {
     this.loadLayout();
   }
-  startResizing(event: MouseEvent, index: number) {
-    event.stopPropagation();
-    this.isResizing = true;
-    this.resizeIndex = index;
 
-    this.startX = event.clientX;
-    this.startY = event.clientY;
-    this.startWidth = this.layout[index].width || 50;
-    this.startHeight = this.layout[index].height || 50;
-
-    document.addEventListener('mousemove', this.resizeElement);
-    document.addEventListener('mouseup', this.stopResizing);
-  }
-
-  resizeElement = (event: MouseEvent) => {
-    if (!this.isResizing) return;
-
-    const dx = event.clientX - this.startX;
-    const dy = event.clientY - this.startY;
-    const newWidth = Math.max(30, this.startWidth + dx);
-    const newHeight = Math.max(30, this.startHeight + dy);
-
-    this.layout[this.resizeIndex].width = newWidth;
-    this.layout[this.resizeIndex].height = newHeight;
-  };
-
-  stopResizing = () => {
-    this.isResizing = false;
-    this.resizeIndex = -1;
-    document.removeEventListener('mousemove', this.resizeElement);
-    document.removeEventListener('mouseup', this.stopResizing);
-  };
   dragStart(event: DragEvent, type: string) {
     event.dataTransfer?.setData('text/plain', JSON.stringify({ id: this.generateId(), type }));
   }
@@ -62,12 +32,11 @@ export class AppComponent {
   }
 
   updateItemPosition(index: number, event: { x: number; y: number }) {
-    if (!this.layout[index]) return;
-
-    this.layout[index].x = event.x;
-    this.layout[index].y = event.y;
+    if (this.layout[index]) {
+      this.layout[index].x = event.x;
+      this.layout[index].y = event.y;
+    }
   }
-
 
   deleteItem(index: number) {
     this.layout.splice(index, 1);
@@ -93,4 +62,47 @@ export class AppComponent {
   generateId(): string {
     return Math.random().toString(36).substr(2, 9);
   }
+
+  /** START RESIZING **/
+  startResizing(event: MouseEvent, index: number) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    this.isResizing = true;
+    this.resizeIndex = index;
+    this.startX = event.clientX;
+    this.startY = event.clientY;
+    this.startWidth = this.layout[index].width;
+    this.startHeight = this.layout[index].height;
+
+    document.addEventListener('mousemove', this.resizeElement);
+    document.addEventListener('mouseup', this.stopResizing);
+  }
+
+  resizeElement = (event: MouseEvent) => {
+    if (!this.isResizing) return;
+
+    const dropZone = document.querySelector('.drop-zone') as HTMLElement;
+    const dropZoneRect = dropZone.getBoundingClientRect();
+
+    const dx = ((event.clientX - this.startX) / dropZoneRect.width) * 100;
+    const dy = ((event.clientY - this.startY) / dropZoneRect.height) * 100;
+
+    let newWidth = Math.max(5, this.startWidth + dx);
+    let newHeight = Math.max(5, this.startHeight + dy);
+
+    // Ensure resizing stays inside drop zone
+    newWidth = Math.min(newWidth, 100 - this.layout[this.resizeIndex].x);
+    newHeight = Math.min(newHeight, 100 - this.layout[this.resizeIndex].y);
+
+    this.layout[this.resizeIndex].width = newWidth;
+    this.layout[this.resizeIndex].height = newHeight;
+  };
+
+  stopResizing = () => {
+    this.isResizing = false;
+    this.resizeIndex = -1;
+    document.removeEventListener('mousemove', this.resizeElement);
+    document.removeEventListener('mouseup', this.stopResizing);
+  };
 }
