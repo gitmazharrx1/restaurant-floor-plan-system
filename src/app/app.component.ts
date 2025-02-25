@@ -2,11 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { DraggableDirective } from '../directive/Draggable.directive';
 import { DropZoneDirective } from '../directive/DropZone.directive';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, DraggableDirective, DropZoneDirective],
+  imports: [CommonModule, DraggableDirective, DropZoneDirective, CommonModule, FormsModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
@@ -25,6 +26,7 @@ export class AppComponent {
   startWidth = 0;
   startHeight = 0;
 
+  selectedItem: any = null;
   @ViewChild('svgContainer', { static: false }) svgContainer!: ElementRef;
 
   ngOnInit() {
@@ -228,6 +230,8 @@ export class AppComponent {
   }
 
 
-
+  selectItem(item: any) {
+    this.selectedItem = item;
+  }
 
 }
