@@ -12,87 +12,69 @@ import { DropZoneDirective } from '../directive/DropZone.directive';
 })
 export class AppComponent {
   layout: any[] = [];
+  connections: { tableId: string, chairId: string }[] = [];
+  selectedTableId: string | null = null;
+  tableLabelCount: number = 1;
+  chairLabelCount: number = 1;
+
+  // Resizing related properties
   isResizing = false;
   resizeIndex = -1;
   startX = 0;
   startY = 0;
   startWidth = 0;
   startHeight = 0;
-  tableLabelCount: number = 1;
-  chairLabelCount: number = 1;
+
   @ViewChild('svgContainer', { static: false }) svgContainer!: ElementRef;
-  connections: { tableId: string, chairId: string }[] = [];
-  selectedTableId: string | null = null;
 
   ngOnInit() {
     this.loadLayout();
   }
 
+  // Handles dragging start for tables and chairs
   dragStart(event: DragEvent, type: string) {
-    let label = ''
-    if (type == 'table') {
-      label = `Table ${this.tableLabelCount}`
-      this.tableLabelCount++;
-    } else if (type == 'chair') {
-      label = `Chair ${this.chairLabelCount}`
-      this.chairLabelCount++;
-    }
+    let label = type === 'table' ? `Table ${this.tableLabelCount++}` : `Chair ${this.chairLabelCount++}`;
     event.dataTransfer?.setData('text/plain', JSON.stringify({ id: this.generateId(), type, label }));
   }
 
-
-
+  // Handles item deletion and removes related connections
   deleteItem(index: number, item: any) {
     this.layout.splice(index, 1);
-    if (item.type == 'table') {
-      let tables = this.connections.find(c => c.tableId == item.id);
-      if (tables) {
-        this.connections = this.connections.filter(c => c.tableId != tables.tableId);
-      }
-    } else if (item.type == 'chair') {
-      let chair = this.connections.findIndex(c => c.chairId == item.id);
-      if (chair !== -1) {
-        this.connections.splice(chair, 1);
-      }
+    if (item.type === 'table') {
+      this.connections = this.connections.filter(c => c.tableId !== item.id);
+    } else if (item.type === 'chair') {
+      this.connections = this.connections.filter(c => c.chairId !== item.id);
     }
     this.updateConnections();
   }
 
+  // Saves layout and connections to local storage
   saveLayout() {
-    const layoutData = {
-      layout: this.layout,
-      connections: this.connections
-    };
-    localStorage.setItem('restaurantLayout', JSON.stringify(layoutData));
+    localStorage.setItem('restaurantLayout', JSON.stringify({ layout: this.layout, connections: this.connections }));
     alert('Layout and Connections Saved!');
   }
 
-
+  // Loads saved layout from local storage
   loadLayout() {
     const savedData = localStorage.getItem('restaurantLayout');
     if (savedData) {
       const parsedData = JSON.parse(savedData);
       this.layout = parsedData.layout || [];
       this.connections = parsedData.connections || [];
-
-      // Update counts to avoid label duplication
       this.tableLabelCount = this.layout.filter(item => item.type === 'table').length + 1;
       this.chairLabelCount = this.layout.filter(item => item.type === 'chair').length + 1;
-
-      // Ensure connections are updated after the view initializes
-      setTimeout(() => {
-        this.updateConnections();
-      }, 100);
+      setTimeout(() => this.updateConnections(), 100);
     }
   }
 
-
-
+  // Clears layout and local storage data
   clearLayout() {
     this.layout = [];
     localStorage.removeItem('restaurantLayout');
+    this.updateConnections()
   }
 
+  // Generates a unique ID for each item
   generateId(): string {
     return Math.random().toString(36).substr(2, 9);
   }
@@ -115,7 +97,6 @@ export class AppComponent {
 
   resizeElement = (event: MouseEvent) => {
     if (!this.isResizing) return;
-
     const dropZone = document.querySelector('.drop-zone') as HTMLElement;
     const dropZoneRect = dropZone.getBoundingClientRect();
 
@@ -124,8 +105,6 @@ export class AppComponent {
 
     let newWidth = Math.max(5, this.startWidth + dx);
     let newHeight = Math.max(5, this.startHeight + dy);
-
-    // Ensure resizing stays inside drop zone
     newWidth = Math.min(newWidth, 100 - this.layout[this.resizeIndex].x);
     newHeight = Math.min(newHeight, 100 - this.layout[this.resizeIndex].y);
 
@@ -140,11 +119,13 @@ export class AppComponent {
     document.removeEventListener('mouseup', this.stopResizing);
   };
 
+  // Handles item drop event
   onItemDropped(event: any) {
     this.layout.push(event);
     this.updateConnections();
   }
 
+  // Updates item position on drag
   updateItemPosition(index: number, event: { x: number; y: number }) {
     if (this.layout[index]) {
       this.layout[index].x = event.x;
@@ -153,17 +134,15 @@ export class AppComponent {
     }
   }
 
+  // Selects a table to connect chairs
   selectTable(tableId: string) {
     this.selectedTableId = tableId;
   }
 
+  // Connects a chair to the selected table
   connectChairToTable(chairId: string) {
     if (this.selectedTableId) {
-      let index = this.connections.findIndex(c => c.chairId === chairId)
-      if (index !== -1) {
-        this.connections.splice(index, 1);
-      }
-
+      this.connections = this.connections.filter(c => c.chairId !== chairId);
       this.connections.push({ tableId: this.selectedTableId, chairId });
       this.updateConnections();
     } else {
@@ -171,30 +150,26 @@ export class AppComponent {
     }
   }
 
+  // Updates visual connection lines between tables and chairs
   updateConnections() {
     if (!this.svgContainer) return;
     const svg = this.svgContainer.nativeElement;
     svg.innerHTML = '';
-
     const dropZone = document.querySelector('.drop-zone') as HTMLElement;
     if (!dropZone) return;
-
     const dropZoneRect = dropZone.getBoundingClientRect();
 
     this.connections.forEach(({ tableId, chairId }) => {
       const table = this.layout.find(item => item.id === tableId);
       const chair = this.layout.find(item => item.id === chairId);
-
       if (table && chair) {
-        // Convert percentage positions to pixels
         const tableX = (table.x / 100) * dropZoneRect.width;
         const tableY = (table.y / 100) * dropZoneRect.height;
         const chairX = (chair.x / 100) * dropZoneRect.width;
         const chairY = (chair.y / 100) * dropZoneRect.height;
 
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        const d = `M${tableX} ${tableY} Q ${(tableX + chairX) / 2} ${(tableY + chairY) / 2}, ${chairX} ${chairY}`;
-        path.setAttribute('d', d);
+        path.setAttribute('d', `M${tableX} ${tableY} Q ${(tableX + chairX) / 2} ${(tableY + chairY) / 2}, ${chairX} ${chairY}`);
         path.setAttribute('stroke', 'black');
         path.setAttribute('fill', 'transparent');
         path.setAttribute('stroke-width', '2');
