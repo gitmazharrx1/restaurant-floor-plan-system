@@ -5,12 +5,18 @@
   </div>
 
   <div class="drop-zone" appDropZone (itemDropped)="onItemDropped($event)">
+    <svg #svgContainer class="connection-lines"></svg>
     <div *ngFor="let item of layout; let i = index" class="dropped-item" [style.left.%]="item.x" [style.top.%]="item.y"
       [style.width.%]="item.width" [style.height.%]="item.height" appDraggable
       (positionChanged)="updateItemPosition(i, $event)">
       {{ item.label }}
+      <button *ngIf="item.type === 'table'" (click)="selectTable(item.id)"
+        [class.selected]="selectedTableId === item.id">✔ Select</button>
+
+      <!-- Connect Chair to Table -->
+      <button *ngIf="item.type === 'chair'" (click)="connectChairToTable(item.id)">🔗 Connect</button>
       <div class="resize-handle" (mousedown)="startResizing($event, i)"></div>
-      <button class="delete-btn" (click)="deleteItem(i)">❌</button>
+      <button class="delete-btn" (click)="deleteItem(i,item)">❌</button>
     </div>
   </div>
 
