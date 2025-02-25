@@ -151,10 +151,12 @@ export class AppComponent {
   }
 
   // Updates visual connection lines between tables and chairs
+  // Updates visual connection lines between tables and chairs
   updateConnections() {
     if (!this.svgContainer) return;
     const svg = this.svgContainer.nativeElement;
     svg.innerHTML = '';
+
     const dropZone = document.querySelector('.drop-zone') as HTMLElement;
     if (!dropZone) return;
     const dropZoneRect = dropZone.getBoundingClientRect();
@@ -165,11 +167,54 @@ export class AppComponent {
       if (table && chair) {
         const tableX = (table.x / 100) * dropZoneRect.width;
         const tableY = (table.y / 100) * dropZoneRect.height;
+        const tableWidth = (table.width / 100) * dropZoneRect.width;
+        const tableHeight = (table.height / 100) * dropZoneRect.height;
+
         const chairX = (chair.x / 100) * dropZoneRect.width;
         const chairY = (chair.y / 100) * dropZoneRect.height;
+        const chairWidth = (chair.width / 100) * dropZoneRect.width;
+        const chairHeight = (chair.height / 100) * dropZoneRect.height;
 
+        let startX = 0, startY = 0, endX = 0, endY = 0;
+
+        // Determine relative position
+        const isLeft = chairX + chairWidth <= tableX;
+        const isRight = chairX >= tableX + tableWidth;
+        const isAbove = chairY + chairHeight <= tableY;
+        const isBelow = chairY >= tableY + tableHeight;
+
+        if (isLeft) {
+          // Chair is to the left of the table
+          startX = tableX;
+          startY = tableY + tableHeight / 2;
+          endX = chairX + chairWidth;
+          endY = chairY + chairHeight / 2;
+        }
+        else if (isRight) {
+          // Chair is to the right of the table
+          startX = tableX + tableWidth;
+          startY = tableY + tableHeight / 2;
+          endX = chairX;
+          endY = chairY + chairHeight / 2;
+        }
+        else if (isAbove) {
+          // Chair is above the table
+          startX = tableX + tableWidth / 2;
+          startY = tableY;
+          endX = chairX + chairWidth / 2;
+          endY = chairY + chairHeight;
+        }
+        else if (isBelow) {
+          // Chair is below the table
+          startX = tableX + tableWidth / 2;
+          startY = tableY + tableHeight;
+          endX = chairX + chairWidth / 2;
+          endY = chairY;
+        }
+
+        // Create SVG path
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', `M${tableX} ${tableY} Q ${(tableX + chairX) / 2} ${(tableY + chairY) / 2}, ${chairX} ${chairY}`);
+        path.setAttribute('d', `M${startX} ${startY} Q ${(startX + endX) / 2} ${(startY + endY) / 2}, ${endX} ${endY}`);
         path.setAttribute('stroke', 'black');
         path.setAttribute('fill', 'transparent');
         path.setAttribute('stroke-width', '2');
@@ -177,4 +222,7 @@ export class AppComponent {
       }
     });
   }
+
+
+
 }
