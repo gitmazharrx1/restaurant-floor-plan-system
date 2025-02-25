@@ -155,16 +155,18 @@ export class AppComponent {
   updateConnections() {
     if (!this.svgContainer) return;
     const svg = this.svgContainer.nativeElement;
-    svg.innerHTML = '';
+    svg.innerHTML = ''; // Clear previous connections
 
     const dropZone = document.querySelector('.drop-zone') as HTMLElement;
     if (!dropZone) return;
-    const dropZoneRect = dropZone.getBoundingClientRect();
+    const dropZoneRect = dropZone.getBoundingClientRect(); // Get drop-zone dimensions
 
     this.connections.forEach(({ tableId, chairId }) => {
       const table = this.layout.find(item => item.id === tableId);
       const chair = this.layout.find(item => item.id === chairId);
+
       if (table && chair) {
+        // Convert percentages to actual pixel values
         const tableX = (table.x / 100) * dropZoneRect.width;
         const tableY = (table.y / 100) * dropZoneRect.height;
         const tableWidth = (table.width / 100) * dropZoneRect.width;
@@ -177,51 +179,54 @@ export class AppComponent {
 
         let startX = 0, startY = 0, endX = 0, endY = 0;
 
-        // Determine relative position
-        const isLeft = chairX + chairWidth <= tableX;
-        const isRight = chairX >= tableX + tableWidth;
-        const isAbove = chairY + chairHeight <= tableY;
-        const isBelow = chairY >= tableY + tableHeight;
+        // Determine relative position of the chair to the table
+        const isLeft = chairX + chairWidth <= tableX;      // Chair is fully to the left
+        const isRight = chairX >= tableX + tableWidth;     // Chair is fully to the right
+        const isAbove = chairY + chairHeight <= tableY;    // Chair is above the table
+        const isBelow = chairY >= tableY + tableHeight;    // Chair is below the table
 
         if (isLeft) {
-          // Chair is to the left of the table
+          // Chair is to the left → Connect from table's left-center to chair's right-center
           startX = tableX;
           startY = tableY + tableHeight / 2;
           endX = chairX + chairWidth;
           endY = chairY + chairHeight / 2;
         }
         else if (isRight) {
-          // Chair is to the right of the table
+          // Chair is to the right → Connect from table's right-center to chair's left-center
           startX = tableX + tableWidth;
           startY = tableY + tableHeight / 2;
           endX = chairX;
           endY = chairY + chairHeight / 2;
         }
         else if (isAbove) {
-          // Chair is above the table
+          // Chair is above → Connect from table's top-center to chair's bottom-center
           startX = tableX + tableWidth / 2;
           startY = tableY;
           endX = chairX + chairWidth / 2;
           endY = chairY + chairHeight;
         }
         else if (isBelow) {
-          // Chair is below the table
+          // Chair is below → Connect from table's bottom-center to chair's top-center
           startX = tableX + tableWidth / 2;
           startY = tableY + tableHeight;
           endX = chairX + chairWidth / 2;
           endY = chairY;
         }
 
-        // Create SVG path
+        // Create an SVG path for the connection
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         path.setAttribute('d', `M${startX} ${startY} Q ${(startX + endX) / 2} ${(startY + endY) / 2}, ${endX} ${endY}`);
-        path.setAttribute('stroke', 'black');
-        path.setAttribute('fill', 'transparent');
-        path.setAttribute('stroke-width', '2');
+        path.setAttribute('stroke', 'black'); // Line color
+        path.setAttribute('fill', 'transparent'); // No fill
+        path.setAttribute('stroke-width', '2'); // Line thickness
+
+        // Append path to the SVG container
         svg.appendChild(path);
       }
     });
   }
+
 
 
 
