@@ -8,7 +8,7 @@
     <svg #svgContainer class="connection-lines"></svg>
     <div *ngFor="let item of layout; let i = index" class="dropped-item"
       [ngStyle]="{ left: item.x + '%', top: item.y + '%' }" [style.width.%]="item.width" [style.height.%]="item.height"
-      appDraggable (positionChanged)="updateItemPosition(i, $event)" (click)="selectItem(item)">
+      appDraggable (positionChanged)="updateItemPosition(i, $event)" (dblclick)="selectItem(item)">
       {{ item.label }}
       <button *ngIf="item.type === 'table'" (click)="selectTable(item.id)"
         [class.selected]="selectedTableId === item.id">✔ Select</button>

@@ -22,7 +22,6 @@ export class DraggableDirective {
 
     this.dropZone = this.el.nativeElement.parentElement;
     const rect = this.el.nativeElement.getBoundingClientRect();
-    const dropZoneRect = this.dropZone.getBoundingClientRect();
 
     this.startX = event.clientX;
     this.startY = event.clientY;
